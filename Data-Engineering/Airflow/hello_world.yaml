@@ -34,7 +34,10 @@ spec:
   # If you omit the 'executor' block entirely, the operator might default
   # or might fail if it strictly expects it. Let's try defining 0 instances.
   executor:
-    instances: 0 # Request zero executors explicitly
+    instances: 1 # Request zero executors explicitly
+    cores: 1
+    coreLimit: "500m" # Optional: Keep low
+    memory: "256m"  # Optional: Keep low
   # --- Volume Definition (Same as before) ---
   volumes:
     - name: shared-volume
