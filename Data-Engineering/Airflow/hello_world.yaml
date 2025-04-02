@@ -16,7 +16,7 @@ spec:
   imagePullSecrets:
   - imagepull
   # ----> Point to the new script on the mounted volume <----
-  mainApplicationFile: "local:///mounts/shared-volume/shared/ezua-tutorials/current-release/Data-Engineering/Airflow/scripts/hello_world.py" # Adjust path as needed!
+  mainApplicationFile: "local:///mounts/shared-volume/shared/AI-Demos/Data-Analytics/Spark/scripts/hello_world.py" # Adjust path as needed!
   restartPolicy:
     type: Never
   # --- Driver Pod Configuration (This is what will run the script) ---
