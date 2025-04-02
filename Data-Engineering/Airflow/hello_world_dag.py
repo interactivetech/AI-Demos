@@ -55,12 +55,12 @@ submit_hello_world = SparkKubernetesOperator(
     enable_impersonation_from_ldap_user=True,
 )
 
-# Optional: Monitor the 'SparkApplication' completion
-monitor_hello_world = SparkKubernetesSensor(
-    task_id="monitor_hello_world",
-    application_name="{{ task_instance.xcom_pull(task_ids='submit_hello_world')['metadata']['name'] }}",
-    dag=dag,
-    attach_log=True, # See the "Hello World!" output in Airflow logs
-)
+# # Optional: Monitor the 'SparkApplication' completion
+# monitor_hello_world = SparkKubernetesSensor(
+#     task_id="monitor_hello_world",
+#     application_name="{{ task_instance.xcom_pull(task_ids='submit_hello_world')['metadata']['name'] }}",
+#     dag=dag,
+#     attach_log=True, # See the "Hello World!" output in Airflow logs
+# )
 
-submit_hello_world >> monitor_hello_world # Define dependency
+# submit_hello_world >> monitor_hello_world # Define dependency

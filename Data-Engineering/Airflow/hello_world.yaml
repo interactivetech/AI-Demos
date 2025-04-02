@@ -29,17 +29,17 @@ spec:
     volumeMounts:
       - name: shared-volume
         mountPath: /mounts/shared-volume/shared # Mount the code
-  # --- Executors: Probably not needed, but operator might create one anyway ---
-  # Let's define it minimally or omit it. Omitting might be cleaner if it works.
-  # If you omit the 'executor' block entirely, the operator might default
-  # or might fail if it strictly expects it. Let's try defining 0 instances.
   executor:
-    instances: 1 # Request zero executors explicitly
+    instances: 2
     cores: 1
     coreLimit: "500m" # Optional: Keep low
     memory: "256m"  # Optional: Keep low
-  # --- Volume Definition (Same as before) ---
-  volumes:
-    - name: shared-volume
-      persistentVolumeClaim:
-        claimName: kubeflow-shared-pvc # Assumes your hello_world.py is here
+    labels:
+      version: '{{dag_run.conf["spark_image_version"]}}'
+    volumeMounts:
+      - name: shared-volume
+        mountPath: /mounts/shared-volume/shared
+    volumes:
+      - name: shared-volume
+        persistentVolumeClaim:
+          claimName: kubeflow-shared-pvc
