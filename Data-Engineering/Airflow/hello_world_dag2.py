@@ -56,6 +56,19 @@ k = KubernetesPodOperator(
             "cpu": "1",
         },
     },
+    pod_override=k8s.V1Pod(
+        spec=k8s.V1PodSpec(
+            containers=[
+                k8s.V1Container(
+                    name="airflow-xcom-sidecar",
+                    resources=k8s.V1ResourceRequirements(
+                        requests={"memory": "16Mi", "cpu": "10m"},
+                        limits={"memory": "64Mi", "cpu": "50m"},
+                    ),
+                )
+            ]
+        )
+    )
 )
 
 # k.dry_run()
