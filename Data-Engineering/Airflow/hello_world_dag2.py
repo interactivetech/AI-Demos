@@ -1,8 +1,8 @@
 from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator
 from airflow import DAG
 from airflow.utils.dates import days_ago
-# You don't need the k8s import for this specific override anymore
-# from kubernetes.client import models as k8s
+# Re-import the Kubernetes client models
+from kubernetes.client import models as k8s
 
 from airflow.models.param import Param
 #v0.0.9
@@ -48,7 +48,7 @@ k = KubernetesPodOperator(
     labels={"foo": "bar"},
     task_id="dry_run_demo",
     do_xcom_push=True,
-    # Resources for the main container
+    # Resources for the main container (dict is fine here)
     container_resources={
         "requests": {
             "memory": "512Mi",
@@ -59,11 +59,9 @@ k = KubernetesPodOperator(
             "cpu": "1",
         },
     },
-    # Use the dedicated parameter for xcom sidecar resources
-    xcom_sidecar_container_resources={
-        "requests": {"memory": "16Mi", "cpu": "10m"},
-        "limits": {"memory": "64Mi", "cpu": "50m"},
-    }
-    # Remove the invalid pod_override parameter
-    # pod_override=k8s.V1Pod(...) # This was causing the error
+    # Use V1ResourceRequirements object for xcom sidecar resources
+    xcom_sidecar_container_resources=k8s.V1ResourceRequirements(
+        requests={"memory": "16Mi", "cpu": "10m"},
+        limits={"memory": "64Mi", "cpu": "50m"},
+    )
 )
