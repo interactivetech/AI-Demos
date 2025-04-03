@@ -3,7 +3,7 @@ from airflow import DAG
 from airflow.utils.dates import days_ago
 
 from airflow.models.param import Param
-#v0.0.4
+#v0.0.5
 
 default_args = {
     "owner": "airflow",
