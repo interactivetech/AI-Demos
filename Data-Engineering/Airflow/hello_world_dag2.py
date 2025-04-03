@@ -46,6 +46,12 @@ k = KubernetesPodOperator(
     labels={"foo": "bar"},
     task_id="dry_run_demo",
     do_xcom_push=True,
+    resources=Resources(
+        request_memory="512Mi",
+        request_cpu="250m",
+        limit_memory="1Gi",
+        limit_cpu="1"
+    )
 )
 
 # k.dry_run()
