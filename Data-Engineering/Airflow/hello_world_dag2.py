@@ -1,7 +1,7 @@
 from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator
 from airflow import DAG
 from airflow.utils.dates import days_ago
-from airflow.kubernetes.pod import Resources
+from airflow.providers.cncf.kubernetes.backcompat.pod import Resources
 
 from airflow.models.param import Param
 #v0.0.5
