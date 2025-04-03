@@ -1,11 +1,11 @@
 from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator
 from airflow import DAG
 from airflow.utils.dates import days_ago
-# Re-import the Kubernetes client models
-from kubernetes.client import models as k8s
+# We don't strictly need k8s import if not using the sidecar override
+# from kubernetes.client import models as k8s
 
 from airflow.models.param import Param
-#v0.0.9
+#v0.0.10
 
 default_args = {
     "owner": "airflow",
@@ -47,8 +47,8 @@ k = KubernetesPodOperator(
     arguments=["echo hi"],
     labels={"foo": "bar"},
     task_id="dry_run_demo",
-    do_xcom_push=True,
-    # Resources for the main container (dict is fine here)
+    do_xcom_push=False,
+    # Resources for the main container
     container_resources={
         "requests": {
             "memory": "512Mi",
@@ -59,9 +59,5 @@ k = KubernetesPodOperator(
             "cpu": "1",
         },
     },
-    # Use V1ResourceRequirements object for xcom sidecar resources
-    xcom_sidecar_container_resources=k8s.V1ResourceRequirements(
-        requests={"memory": "16Mi", "cpu": "10m"},
-        limits={"memory": "64Mi", "cpu": "50m"},
-    )
+    # Removed xcom_sidecar_container_resources parameter
 )
