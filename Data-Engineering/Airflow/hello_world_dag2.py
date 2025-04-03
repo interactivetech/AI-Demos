@@ -1,10 +1,9 @@
 from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator
 from airflow import DAG
 from airflow.utils.dates import days_ago
-from airflow.providers.cncf.kubernetes.backcompat.pod import Resources
 
 from airflow.models.param import Param
-#v0.0.5
+#v0.0.6
 
 default_args = {
     "owner": "airflow",
@@ -47,12 +46,16 @@ k = KubernetesPodOperator(
     labels={"foo": "bar"},
     task_id="dry_run_demo",
     do_xcom_push=True,
-    resources=Resources(
-        request_memory="512Mi",
-        request_cpu="250m",
-        limit_memory="1Gi",
-        limit_cpu="1"
-    )
+    container_resources={
+        "requests": {
+            "memory": "512Mi",
+            "cpu": "250m",
+        },
+        "limits": {
+            "memory": "1Gi",
+            "cpu": "1",
+        },
+    },
 )
 
 # k.dry_run()
