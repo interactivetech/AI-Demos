@@ -1,7 +1,7 @@
 from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator
-
+#v.0.0.1
 k = KubernetesPodOperator(
-    name="hello-dry-run",
+    name="hello-world-dag2",
     image="debian",
     cmds=["bash", "-cx"],
     arguments=["echo", "10"],
