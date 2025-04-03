@@ -4,7 +4,7 @@ from airflow.utils.dates import days_ago
 from kubernetes.client import models as k8s
 
 from airflow.models.param import Param
-#v0.0.7
+#v0.0.8
 
 default_args = {
     "owner": "airflow",
@@ -63,9 +63,9 @@ k = KubernetesPodOperator(
                 k8s.V1Container(
                     name="airflow-xcom-sidecar",
                     resources=k8s.V1ResourceRequirements(
-                        requests={"memory": "16Mi", "cpu": "10m"},
                         limits={"memory": "64Mi", "cpu": "50m"},
-                    ),
+                        requests={"memory": "16Mi", "cpu": "10m"},
+                    )
                 )
             ]
         )
