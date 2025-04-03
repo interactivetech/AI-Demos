@@ -1,3 +1,4 @@
+# 4/3/25 - THIS DOES NOT WORK, ISSUE WITH AIRFLOW XCOM 
 from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator
 from airflow.operators.bash import BashOperator
 from airflow import DAG
