@@ -3,7 +3,7 @@ from airflow import DAG
 from airflow.utils.dates import days_ago
 
 from airflow.models.param import Param
-#v0.0.3
+#v0.0.4
 
 default_args = {
     "owner": "airflow",
@@ -33,6 +33,7 @@ dag = DAG(
             description="Provide Spark image Version",
         )
     },
+    render_template_as_native_obj=False,
     access_control={"All": {"can_read", "can_edit", "can_delete"}},
 )
 
@@ -41,7 +42,7 @@ k = KubernetesPodOperator(
     dag=dag,
     image="debian",
     cmds=["bash", "-cx"],
-    arguments=["echo", "{{ '10' }}"],
+    arguments=["echo hi"],
     labels={"foo": "bar"},
     task_id="dry_run_demo",
     do_xcom_push=True,
