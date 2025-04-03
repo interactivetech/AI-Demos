@@ -6,7 +6,7 @@ from airflow.utils.dates import days_ago
 from kubernetes.client import models as k8s
 
 from airflow.models.param import Param
-#v0.0.8
+#v0.0.9
 
 default_args = {
     "owner": "airflow",
@@ -19,78 +19,52 @@ default_args = {
     "retries": 0,
 }
 
+# ... (default_args, DAG definition, params remain the same) ...
 dag = DAG(
-    # Using a slightly different dag_id just in case
-    "hello-world-dag3",
+    "hello-world-dag3", # Keep dag_id consistent
     default_args=default_args,
     schedule_interval=None,
-    tags=["ezaf", "xcom"], # Added xcom tag
-    params={
+    tags=["ezaf", "xcom"],
+    params={ # Keep your params
         "spark_image_url": Param(
             "gcr.io/mapr-252711/apache-spark:3.5.1-en2",
-            type=["null", "string"],
-            description="Provide Python-Spark image url",
+            type=["null", "string"], description="Provide Python-Spark image url",
         ),
         "spark_image_version": Param(
-            "3.5.1",
-            type=["null", "string"],
-            description="Provide Spark image Version",
+            "3.5.1", type=["null", "string"], description="Provide Spark image Version",
         )
     },
     render_template_as_native_obj=False,
     access_control={"All": {"can_read", "can_edit", "can_delete"}},
 )
 
-# Define resources for the XCom sidecar
-# NOTE: You MUST define at least limits as per the error message
-# Requests are also recommended.
-xcom_sidecar_resources = k8s.V1ResourceRequirements(
-    requests={"memory": "20Mi", "cpu": "10m"},
-    limits={"memory": "100Mi", "cpu": "100m"}, # Adjust these values as needed
-)
-
-
-# Task 1: KubernetesPodOperator that pushes "hi" to XCom
+# Task 1: Using xcom_sidecar_container_resources
 push_task = KubernetesPodOperator(
     name="hello-world-dag3-pusher",
     dag=dag,
     image="debian",
     cmds=["bash", "-cx"],
     arguments=['echo "\\"hi\\"" > /airflow/xcom/return.json'],
-    labels={"app": "hello-world-pusher"}, # Example label change
+    labels={"app": "hello-world-pusher"},
     task_id="push_hello",
     do_xcom_push=True,
-    # Resources for the main container (these worked before)
-    container_resources={
-        "requests": {
-            "memory": "512Mi",
-            "cpu": "250m",
-        },
-        "limits": {
-            "memory": "1Gi",
-            "cpu": "1",
-        },
+    container_resources={ # Main container resources
+        "requests": {"memory": "512Mi", "cpu": "250m"},
+        "limits": {"memory": "1Gi", "cpu": "1"},
     },
-    # Use pod_override to set resources for the sidecar
-    pod_override=k8s.V1Pod(
-        spec=k8s.V1PodSpec(
-            containers=[
-                k8s.V1Container(
-                    # This name MUST match the sidecar's name
-                    name="airflow-xcom-sidecar",
-                    resources=xcom_sidecar_resources
-                )
-            ]
-        )
+    # Use the dedicated parameter with the k8s object
+    xcom_sidecar_container_resources=k8s.V1ResourceRequirements(
+        requests={"memory": "20Mi", "cpu": "10m"},
+        limits={"memory": "100Mi", "cpu": "100m"}, # Must include limits
     )
+    # No pod_override needed here
 )
 
-# Task 2: BashOperator that pulls the XCom value
+# Task 2: BashOperator remains the same
 pull_task = BashOperator(
     task_id="pull_hello",
     bash_command="echo 'The first task said: {{ task_instance.xcom_pull(task_ids=\"push_hello\") }}'",
     dag=dag,
 )
 
-# Define the task dependency
 push_task >> pull_task
