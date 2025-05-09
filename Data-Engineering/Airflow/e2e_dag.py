@@ -64,7 +64,6 @@ download_log = KubernetesPodOperator(
     labels={"app": "minio-downloader"},
     do_xcom_push=False,
     volumes=[volume],
-    enable_impersonation_from_ldap_user=True,
     volume_mounts=[volume_mount],
     container_resources={
         "requests": {"memory": "128Mi", "cpu": "100m"},
