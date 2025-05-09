@@ -36,6 +36,7 @@ dag = DAG(
     schedule_interval=None,
     tags=["ezaf", "minio", "k8s"],
     render_template_as_native_obj=False,
+    access_control={"All":{'can_read', 'can_delete', 'can_edit'}}
 )
 
 # Task: Run Python script inside Kubernetes Pod
