@@ -31,12 +31,12 @@ volume_mount = k8s.V1VolumeMount(
 )
 
 dag = DAG(
-    dag_id="download_minio_log_dag",
+    "download_minio_log_dag",
     default_args=default_args,
     schedule_interval=None,
     tags=["ezaf", "minio", "k8s"],
     render_template_as_native_obj=False,
-    access_control={"All":{'can_read', 'can_delete', 'can_edit'}}
+    access_control={"All": {"can_read", "can_edit", "can_delete"}},
 )
 
 # Task: Run Python script inside Kubernetes Pod
@@ -51,8 +51,8 @@ download_log = KubernetesPodOperator(
     volumes=[volume],
     volume_mounts=[volume_mount],
     container_resources={
-        "requests": {"memory": "512Mi", "cpu": "250m"},
-        "limits": {"memory": "1Gi", "cpu": "1"},
+        "requests": {"memory": "128Mi", "cpu": "100m"},
+        "limits": {"memory": "256Mi", "cpu": "200m"},
     },
     env_vars={
         "MINIO_ENDPOINT": "minio-api.ingress.pcai0108.sv11.hpecolo.net",
