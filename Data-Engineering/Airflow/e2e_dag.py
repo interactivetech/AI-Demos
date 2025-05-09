@@ -37,7 +37,7 @@ dag = DAG(
     "download_minio_log_dag",
     default_args=default_args,
     schedule_interval=None,
-    tags=["ezaf", "minio", "k8s","shared-volume"],
+    tags=["ezaf", "shared-volume"],
     params={
         "spark_image_url": Param(
             "gcr.io/mapr-252711/apache-spark:3.5.1-en2",
@@ -75,3 +75,5 @@ download_log = KubernetesPodOperator(
         "MINIO_SECRET_KEY": "8ksfKLEoFOWcXAOGpq4oIRun96S9bvo0c6xOyxUA",
     }
 )
+
+download_log
