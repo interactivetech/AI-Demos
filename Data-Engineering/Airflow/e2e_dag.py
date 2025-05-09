@@ -52,8 +52,8 @@ dag = DAG(
     },
     render_template_as_native_obj=False,
     access_control={
-        'Viewer': {"DAGs": ["can_read","can_delete"],
-                   "DAG Runs": ["can_create"],}
+        'Viewer': {"can_read"},
+        'Admin': {"can_read", "can_edit", "can_delete"},
     },
 )
 
