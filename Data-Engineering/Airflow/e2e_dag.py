@@ -51,9 +51,6 @@ dag = DAG(
         )
     },
     render_template_as_native_obj=False,
-    access_control={
-    'SomeRole': {"can_read"}
-    }
 )
 
 # Task: Run Python script inside Kubernetes Pod
