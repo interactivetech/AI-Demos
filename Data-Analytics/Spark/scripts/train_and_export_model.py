@@ -28,6 +28,25 @@ except Exception as e:
 os.environ['MLFLOW_TRACKING_TOKEN'] = token
 print("--MLFLOW_TRACKING_TOKEN:", os.getenv("MLFLOW_TRACKING_TOKEN"))
 
+# Set tracking URI
+mlflow.set_tracking_uri("http://mlflow.mlflow.svc.cluster.local:5000")
+
+# Inject bearer token into all MLflow HTTP requests
+try:
+    with open('/var/run/secrets/mlflow/mlflow-token', "r") as file:
+        token = file.read().strip()
+
+    from mlflow.utils.rest_utils import http_request
+    def authenticated_request(*args, **kwargs):
+        headers = kwargs.pop("headers", {})
+        headers["Authorization"] = f"Bearer {token}"
+        return http_request(*args, headers=headers, **kwargs)
+    mlflow.utils.rest_utils.http_request = authenticated_request
+    print("✅ MLflow token injected into HTTP requests")
+except Exception as e:
+    print("❌ Failed to configure MLflow token:", e)
+    raise
+
 def upload_folder(client, bucket, local_folder, prefix):
     for root, dirs, files in os.walk(local_folder):
         for fname in files:
