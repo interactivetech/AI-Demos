@@ -22,6 +22,7 @@ SHARED_VOLUME_NAME = "shared-volume"
 PVC_NAME = "kubeflow-shared-pvc"
 MOUNT_PATH = "/mounts/shared-volume/shared"
 SCRIPT_PATH = f"{MOUNT_PATH}/AI-Demos/Data-Analytics/Spark/scripts/download_logs.py"
+MLFLOW_TOKEN_VOLUME = "mlflow-sa-token"
 
 volume = k8s.V1Volume(
     name=SHARED_VOLUME_NAME,
@@ -32,6 +33,28 @@ volume_mount = k8s.V1VolumeMount(
     name=SHARED_VOLUME_NAME,
     mount_path=MOUNT_PATH,
 )
+
+token_volume = k8s.V1Volume(
+    name=MLFLOW_TOKEN_VOLUME,
+    projected=k8s.V1ProjectedVolumeSource(
+        sources=[
+            k8s.V1VolumeProjection(
+                service_account_token=k8s.V1ServiceAccountTokenProjection(
+                    path="mlflow-token",
+                    expiration_seconds=3600,
+                    audience="mlflow",
+                )
+            )
+        ]
+    ),
+)
+
+token_volume_mount = k8s.V1VolumeMount(
+    name=MLFLOW_TOKEN_VOLUME,
+    mount_path="/var/run/secrets/mlflow",
+    read_only=True,
+)
+
 
 dag = DAG(
     "e2e_train_and_deploy_time_series_v2",
@@ -90,8 +113,8 @@ train_and_export_model = KubernetesPodOperator(
     ],
     labels={"app": "model-trainer"},
     do_xcom_push=False,
-    volumes=[volume],
-    volume_mounts=[volume_mount],
+    volumes=[volume, token_volume],
+    volume_mounts=[volume_mount, token_volume_mountk],
     container_resources={
         "requests": {"memory": "512Mi", "cpu": "500m"},
         "limits": {"memory": "8Gi", "cpu": "4"},
