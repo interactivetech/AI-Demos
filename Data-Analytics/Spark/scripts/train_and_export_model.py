@@ -43,7 +43,6 @@ def train_and_export_model(
     cleaned_log_filename='merged_cleaned.log',
     source_bucket='clean-logs',
     target_bucket='models2',
-    local_dir='.',
     minio_client=None):
 
     # Read MinIO credentials from env
@@ -189,3 +188,9 @@ def train_and_export_model(
 
     # Upload model + assets
     upload_folder(minio_client, target_bucket, './anomaly_detection', 'anomaly_detection/')
+
+train_and_export_model(
+    cleaned_log_filename='merged_cleaned.log',
+    source_bucket='clean-logs',
+    target_bucket='models2',
+    minio_client=None)

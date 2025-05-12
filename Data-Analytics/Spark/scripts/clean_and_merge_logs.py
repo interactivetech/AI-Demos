@@ -72,3 +72,11 @@ def merge_and_clean_logs(
 
     print(f"✅ Cleaned log written with {len(clean_lines)} entries")
     return response_times
+
+merge_and_clean_logs(
+    ['api_log1.log', 'api_log2.log'],
+    cleaned_log_filename='cleaned_server.log',
+    source_bucket='raw-logs',
+    target_bucket='clean-logs',
+    local_dir='.',
+    minio_client=None)
