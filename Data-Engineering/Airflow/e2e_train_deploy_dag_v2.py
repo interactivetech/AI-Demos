@@ -90,6 +90,7 @@ clean_and_merge_logs = KubernetesPodOperator(
     labels={"app": "minio-downloader"},
     do_xcom_push=False,
     volumes=[volume],
+    working_dir="/tmp",
     volume_mounts=[volume_mount],
     container_resources={
         "requests": {"memory": "128Mi", "cpu": "100m"},
@@ -113,6 +114,7 @@ train_and_export_model = KubernetesPodOperator(
     ],
     labels={"app": "model-trainer"},
     do_xcom_push=False,
+    working_dir="/tmp",
     volumes=[volume, token_volume],
     volume_mounts=[volume_mount, token_volume_mount],
     container_resources={
