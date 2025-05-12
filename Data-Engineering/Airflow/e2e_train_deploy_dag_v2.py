@@ -4,7 +4,7 @@ from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperato
 from kubernetes.client import models as k8s
 
 from airflow.models.param import Param
-
+import os
 # DAG arguments
 default_args = {
     "owner": "airflow",
