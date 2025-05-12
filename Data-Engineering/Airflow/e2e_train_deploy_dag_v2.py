@@ -114,7 +114,7 @@ train_and_export_model = KubernetesPodOperator(
     labels={"app": "model-trainer"},
     do_xcom_push=False,
     volumes=[volume, token_volume],
-    volume_mounts=[volume_mount, token_volume_mountk],
+    volume_mounts=[volume_mount, token_volume_mount],
     container_resources={
         "requests": {"memory": "512Mi", "cpu": "500m"},
         "limits": {"memory": "8Gi", "cpu": "4"},
