@@ -61,7 +61,10 @@ download_log = KubernetesPodOperator(
     dag=dag,
     image="python:3.10",  # Ensure the image has 'pip' and can install packages
     cmds=["bash", "-cx"],
-    arguments=["pip install minio && python3 /mounts/shared-volume/shared/AI-Demos/Data-Analytics/Spark/scripts/download_logs.py"],
+    arguments=[
+        "pip install --user minio && export PYTHONPATH=$HOME/.local/lib/python3.10/site-packages && "
+        "python3 /mounts/shared-volume/shared/AI-Demos/Data-Analytics/Spark/scripts/download_logs.py"
+    ],
     labels={"app": "minio-downloader"},
     do_xcom_push=False,
     volumes=[volume],
