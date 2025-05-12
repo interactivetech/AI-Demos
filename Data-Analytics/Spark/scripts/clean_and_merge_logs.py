@@ -8,13 +8,15 @@ def merge_and_clean_logs(
     cleaned_log_filename='cleaned_server.log',
     source_bucket='raw-logs',
     target_bucket='clean-logs',
-    local_dir='.',
+    local_dir='/tmp/cleaned_logs',
     minio_client=None
 ):
     """
     Merges and cleans logs, uploads cleaned file to target bucket, and returns response times.
     """
-    # Read credentials from environment (do NOT hardcode)
+    os.makedirs(local_dir, exist_ok=True)
+
+    # Read credentials from environment
     endpoint = os.getenv('MINIO_ENDPOINT')
     access_key = os.getenv('MINIO_ACCESS_KEY')
     secret_key = os.getenv('MINIO_SECRET_KEY')
@@ -73,10 +75,11 @@ def merge_and_clean_logs(
     print(f"✅ Cleaned log written with {len(clean_lines)} entries")
     return response_times
 
+# Run as script
 merge_and_clean_logs(
     ['api_log1.log', 'api_log2.log'],
-    cleaned_log_filename='cleaned_server.log',
+    cleaned_log_filename='merged_cleaned.log',
     source_bucket='raw-logs',
     target_bucket='clean-logs',
-    local_dir='.',
+    local_dir='/tmp/cleaned_logs',
     minio_client=None)

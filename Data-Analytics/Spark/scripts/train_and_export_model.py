@@ -1,18 +1,20 @@
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input, LSTM, RepeatVector, TimeDistributed, Dense
+import tensorflow as tf
 import mlflow
 import mlflow.tensorflow
-import tensorflow
-import mlflow
 import os
-from minio.error import S3Error
+import json
 import re
 import numpy as np
 import matplotlib.pyplot as plt
+from minio import Minio
+from minio.error import S3Error
+from mlflow.models.signature import infer_signature
 
 
-print("tensorflow.__version__: ",tensorflow.__version__)
-print("mlflow.__version__: ",mlflow.__version__)
+print("tensorflow.__version__: ", tf.__version__)
+print("mlflow.__version__: ", mlflow.__version__)
 
 print("MLflow Tracking URI:", mlflow.get_tracking_uri())
 print("MLFLOW_TRACKING_TOKEN:", os.getenv("MLFLOW_TRACKING_TOKEN"))
@@ -21,9 +23,9 @@ try:
     with open('/var/run/secrets/mlflow/mlflow-token', "r") as file:
         token = file.read().strip()
 except Exception as e:
-    print(f"Error reading Weaviate auth token: {e}")
+    print(f"Error reading MLflow auth token: {e}")
     raise
-os.environ['MLFLOW_TRACKING_TOKEN']=token
+os.environ['MLFLOW_TRACKING_TOKEN'] = token
 print("--MLFLOW_TRACKING_TOKEN:", os.getenv("MLFLOW_TRACKING_TOKEN"))
 
 def upload_folder(client, bucket, local_folder, prefix):
@@ -31,7 +33,7 @@ def upload_folder(client, bucket, local_folder, prefix):
         for fname in files:
             path = os.path.join(root, fname)
             rel = os.path.relpath(path, local_folder)
-            obj = f"{prefix.rstrip('/')}/{rel.replace(os.sep, '/') }"
+            obj = f"{prefix.rstrip('/')}/{rel.replace(os.sep, '/')}"
             try:
                 client.fput_object(bucket, obj, path)
                 print('Uploaded', obj)
@@ -45,6 +47,11 @@ def train_and_export_model(
     target_bucket='models2',
     minio_client=None):
 
+    tmp_dir = '/tmp/model_pipeline'
+    os.makedirs(tmp_dir, exist_ok=True)
+    export_dir = os.path.join(tmp_dir, 'anomaly_detection/0001')
+    os.makedirs(os.path.join(export_dir, 'assets'), exist_ok=True)
+
     # Read MinIO credentials from env
     endpoint = os.getenv('MINIO_ENDPOINT')
     access_key = os.getenv('MINIO_ACCESS_KEY')
@@ -53,7 +60,6 @@ def train_and_export_model(
     if not all([endpoint, access_key, secret_key]):
         raise ValueError("Missing MinIO credentials in environment variables.")
 
-    # Initialize client
     if minio_client is None:
         minio_client = Minio(
             endpoint,
@@ -63,7 +69,7 @@ def train_and_export_model(
         )
 
     # Download log
-    download_path = "downloaded-server.log"
+    download_path = os.path.join(tmp_dir, 'downloaded-server.log')
     try:
         minio_client.fget_object(source_bucket, cleaned_log_filename, download_path)
         print(f"📥 Downloaded '{cleaned_log_filename}' to '{download_path}'")
@@ -80,12 +86,10 @@ def train_and_export_model(
                 times.append(float(m.group(1)))
     data = np.array(times)
 
-    # Create sliding windows
     window_size = 10
     windows = np.array([data[i:i+window_size] for i in range(len(data)-window_size)])
     windows = windows[..., np.newaxis]
 
-    # Split
     split = int(0.8 * len(windows))
     train_data = windows[:split]
     test_data = windows[split:]
@@ -111,7 +115,6 @@ def train_and_export_model(
             batch_size=32
         )
 
-    # Compute error
     recon_train = autoencoder.predict(train_data)
     errors_train = np.mean((recon_train - train_data)**2, axis=(1,2))
     threshold = errors_train.mean() + 2 * errors_train.std()
@@ -124,25 +127,22 @@ def train_and_export_model(
     mlflow.log_metric("max_test_error", errors_test.max())
 
     # Save plots
-    os.makedirs('anomaly_detection/0001/assets', exist_ok=True)
-
     plt.figure()
     plt.hist(errors_test, bins=50)
     plt.axvline(threshold, linestyle='--')
     plt.title('Reconstruction Error Distribution (Test)')
-    plt.savefig('anomaly_detection/0001/assets/error_hist.png')
+    plt.savefig(os.path.join(export_dir, 'assets', 'error_hist.png'))
 
     plt.figure()
     plt.plot(errors_test)
     plt.axhline(threshold, linestyle='--')
     plt.title('Reconstruction Error Over Time')
-    plt.savefig('anomaly_detection/0001/assets/error_time.png')
+    plt.savefig(os.path.join(export_dir, 'assets', 'error_time.png'))
 
     # Export model
     dummy = tf.random.normal([1, window_size, 1])
     autoencoder(dummy)
 
-    export_dir = 'anomaly_detection/0001'
     archive = tf.keras.export.ExportArchive()
     archive.track(autoencoder)
 
@@ -172,23 +172,22 @@ def train_and_export_model(
             registered_model_name="AnomalyDetectionModel"
         )
 
-        run_id = run.info.run_id
-        artifact_uri = mlflow.get_artifact_uri("model")
-
         metadata = {
-            "run_id": run_id,
-            "artifact_uri": artifact_uri,
+            "run_id": run.info.run_id,
+            "artifact_uri": mlflow.get_artifact_uri("model"),
             "registered_model_name": "AnomalyDetectionModel"
         }
 
-        with open("anomaly_detection/model_metadata.json", "w") as f:
+        metadata_path = os.path.join(tmp_dir, "anomaly_detection", "model_metadata.json")
+        with open(metadata_path, "w") as f:
             json.dump(metadata, f, indent=2)
 
-        print("📦 Metadata written to anomaly_detection/model_metadata.json")
+        print("📦 Metadata written to", metadata_path)
 
-    # Upload model + assets
-    upload_folder(minio_client, target_bucket, './anomaly_detection', 'anomaly_detection/')
+    # Upload everything to MinIO
+    upload_folder(minio_client, target_bucket, os.path.join(tmp_dir, 'anomaly_detection'), 'anomaly_detection/')
 
+# Run the training
 train_and_export_model(
     cleaned_log_filename='merged_cleaned.log',
     source_bucket='clean-logs',
