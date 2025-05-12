@@ -17,7 +17,14 @@ print("mlflow.__version__: ",mlflow.__version__)
 print("MLflow Tracking URI:", mlflow.get_tracking_uri())
 print("MLFLOW_TRACKING_TOKEN:", os.getenv("MLFLOW_TRACKING_TOKEN"))
 
-
+try:
+    with open('/var/run/secrets/mlflow/mlflow-token', "r") as file:
+        token = file.read().strip()
+except Exception as e:
+    print(f"Error reading Weaviate auth token: {e}")
+    raise
+os.environ['MLFLOW_TRACKING_TOKEN']=token
+print("--MLFLOW_TRACKING_TOKEN:", os.getenv("MLFLOW_TRACKING_TOKEN"))
 
 def upload_folder(client, bucket, local_folder, prefix):
     for root, dirs, files in os.walk(local_folder):
