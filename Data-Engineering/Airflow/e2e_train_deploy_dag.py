@@ -56,8 +56,8 @@ dag = DAG(
 
 # Task: Run Python script inside Kubernetes Pod
 clean_and_merge_logs = KubernetesPodOperator(
-    task_id="download_log_from_minio",
-    name="minio-downloader",
+    task_id="clean_and_merge_logs",
+    name="clean_and_merge_logs_task",
     dag=dag,
     image="mendeza/python3.10-slim-airflow",  # Ensure it has 'requests', 'minio' installed
     cmds=["bash", "-cx"],
