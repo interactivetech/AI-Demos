@@ -174,29 +174,29 @@ def train_and_export_model(
     if mlflow.active_run():
         mlflow.end_run()
 
-    with mlflow.start_run(run_name="register_exported_model") as run:
-        example_input = tf.convert_to_tensor(train_data[:1])
-        example_output = autoencoder(example_input)
-        signature = infer_signature(example_input.numpy(), example_output.numpy())
+    # with mlflow.start_run(run_name="register_exported_model") as run:
+    #     example_input = tf.convert_to_tensor(train_data[:1])
+    #     example_output = autoencoder(example_input)
+    #     signature = infer_signature(example_input.numpy(), example_output.numpy())
 
-        mlflow.tensorflow.log_model(
-            model=autoencoder,
-            artifact_path="model",
-            signature=signature,
-            registered_model_name="AnomalyDetectionModel"
-        )
+    #     mlflow.tensorflow.log_model(
+    #         model=autoencoder,
+    #         artifact_path="model",
+    #         signature=signature,
+    #         registered_model_name="AnomalyDetectionModel"
+    #     )
 
-        metadata = {
-            "run_id": run.info.run_id,
-            "artifact_uri": mlflow.get_artifact_uri("model"),
-            "registered_model_name": "AnomalyDetectionModel"
-        }
+    #     metadata = {
+    #         "run_id": run.info.run_id,
+    #         "artifact_uri": mlflow.get_artifact_uri("model"),
+    #         "registered_model_name": "AnomalyDetectionModel"
+    #     }
 
-        meta_path = os.path.join(WORK_DIR, "anomaly_detection/model_metadata.json")
-        with open(meta_path, "w") as f:
-            json.dump(metadata, f, indent=2)
+    #     meta_path = os.path.join(WORK_DIR, "anomaly_detection/model_metadata.json")
+    #     with open(meta_path, "w") as f:
+    #         json.dump(metadata, f, indent=2)
 
-        print("📄 Metadata written:", meta_path)
+    #     print("📄 Metadata written:", meta_path)
 
     # --- Upload full model folder to MinIO ---
     upload_folder(minio_client, target_bucket, os.path.join(WORK_DIR, "anomaly_detection"), "anomaly_detection/")
