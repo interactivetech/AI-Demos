@@ -166,7 +166,6 @@ deploy_inference_service = KubernetesPodOperator(
     get_logs=True,
     is_delete_operator_pod=True,
     in_cluster=True,
-    service_account_name="minio-sa"
 )
 
 # Task order
