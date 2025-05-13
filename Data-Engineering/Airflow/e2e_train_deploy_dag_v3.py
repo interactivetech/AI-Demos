@@ -130,35 +130,37 @@ train_and_export_model = KubernetesPodOperator(
 )
 
 # Task: Deploy InferenceService
+import textwrap
+
+yaml_block = textwrap.dedent("""\
+    apiVersion: "serving.kserve.io/v1beta1"
+    kind: "InferenceService"
+    metadata:
+      name: "anomaly"
+      namespace: andrew-mendez-7b98f23e
+    spec:
+      predictor:
+        serviceAccountName: minio-sa
+        tensorflow:
+          storageUri: "s3://models2/anomaly_detection"
+""")
+
 deploy_inference_service = KubernetesPodOperator(
     task_id="deploy_inference_service",
     name="deploy_inference_service_task",
     dag=dag,
-    image="bitnami/kubectl:latest",  # Image that has kubectl
+    image="bitnami/kubectl:latest",
     cmds=["bash", "-cx"],
     arguments=[
-        """
-        kubectl get inferenceservice anomaly || true
-        cat <<EOF | kubectl apply -f -
-        apiVersion: "serving.kserve.io/v1beta1"
-        kind: "InferenceService"
-        metadata:
-          name: "anomaly-airflow"
-          namespace: andrew-mendez-7b98f23e
-        spec:
-          predictor:
-            serviceAccountName: minio-sa
-            tensorflow:
-              storageUri: "s3://models2/anomaly_detection"
-        EOF
-        echo "InferenceService 'anomaly' has been deployed to namespace: andrew-mendez-7b98f23e"
+        f"""
+        echo '{yaml_block}' | kubectl apply -f -
+        echo "InferenceService 'anomaly' has been deployed."
         """
     ],
     get_logs=True,
     is_delete_operator_pod=True,
     in_cluster=True,
-    service_account_name="minio-sa",  # Ensure proper permissions
-    env_vars={},  # Add credentials here if required
+    service_account_name="minio-sa"
 )
 
 # Task order
