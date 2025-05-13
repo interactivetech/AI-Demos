@@ -24,13 +24,15 @@ mlflow.set_tracking_uri("http://mlflow.mlflow.svc.cluster.local:5000")
 print("MLflow Tracking URI:", mlflow.get_tracking_uri())
 
 # --- Load MLflow Token from Volume Mount ---
+# --- Load MLflow Token from Volume Mount ---
 try:
     with open("/var/run/secrets/mlflow/mlflow-token", "r") as f:
         token = f.read().strip()
         os.environ["MLFLOW_TRACKING_TOKEN"] = token
         print("✅ MLflow token injected into environment")
 except Exception as e:
-    raise RuntimeError(f"❌ Failed to read MLflow token: {e}")
+    print(f"❌ Failed to read MLflow token: {e}")
+print(os.environ['MLFLOW_TRACKING_TOKEN'])
 os.environ['MLFLOW_TRACKING_INSECURE_TLS']='true'
 os.environ['MLFLOW_S3_IGNORE_TLS']='true'
 os.environ['MLFLOW_S3_ENDPOINT_URL']='http://local-s3-service.ezdata-system.svc.cluster.local:30000'
