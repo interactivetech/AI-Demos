@@ -19,6 +19,8 @@ os.makedirs(WORK_DIR, exist_ok=True)
 
 print("tensorflow.__version__:", tf.__version__)
 print("mlflow.__version__:", mlflow.__version__)
+
+mlflow.set_tracking_uri("http://mlflow.mlflow.svc.cluster.local:5000")
 print("MLflow Tracking URI:", mlflow.get_tracking_uri())
 
 # --- Load MLflow Token from Volume Mount ---
