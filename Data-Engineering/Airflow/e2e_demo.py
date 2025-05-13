@@ -77,6 +77,26 @@ dag = DAG(
         type=["null", "string"],
         description="MLflow tracking token"
     ),
+    "MINIO_ENDPOINT": Param(
+        default='minio-api.ingress.pcai0108.sv11.hpecolo.net',
+        type=["null", "string"],
+        description="MINIO_ENDPOINT"
+    ),
+    "MINIO_ACCESS_KEY": Param(
+        default='4JCA5L2jOci5eacIW24i',
+        type=["null", "string"],
+        description="MINIO_ACCESS_KEY"
+    ),
+    "MINIO_SECRET_KEY": Param(
+        default='8ksfKLEoFOWcXAOGpq4oIRun96S9bvo0c6xOyxUA',
+        type=["null", "string"],
+        description="MINIO_SECRET_KEY"
+    ),
+    "MLFLOW_TRACKING_URI": Param(
+    default="http://mlflow.mlflow.svc.cluster.local:5000",
+    type=["null", "string"],
+    description="MLFLOW_TRACKING_URI"
+    )
     },
     render_template_as_native_obj=False,
     access_control={"All": {"can_read", "can_edit", "can_delete"}}
@@ -101,9 +121,9 @@ clean_and_merge_logs = KubernetesPodOperator(
         "limits": {"memory": "256Mi", "cpu": "200m"},
     },
     env_vars={
-        "MINIO_ENDPOINT": "minio-api.ingress.pcai0108.sv11.hpecolo.net",
-        "MINIO_ACCESS_KEY": "4JCA5L2jOci5eacIW24i",
-        "MINIO_SECRET_KEY": "8ksfKLEoFOWcXAOGpq4oIRun96S9bvo0c6xOyxUA",
+        "MINIO_ENDPOINT": "{{ params.MINIO_ENDPOINT }}",
+        "MINIO_ACCESS_KEY": "{{ params.MINIO_ACCESS_KEY }}",
+        "MINIO_SECRET_KEY": "{{ params.MINIO_SECRET_KEY }}",
     }
 )
 
@@ -126,10 +146,10 @@ train_and_export_model = KubernetesPodOperator(
         "limits": {"memory": "8Gi", "cpu": "4"},
     },
     env_vars={
-        "MINIO_ENDPOINT": "minio-api.ingress.pcai0108.sv11.hpecolo.net",
-        "MINIO_ACCESS_KEY": "4JCA5L2jOci5eacIW24i",
-        "MINIO_SECRET_KEY": "8ksfKLEoFOWcXAOGpq4oIRun96S9bvo0c6xOyxUA",
-        "MLFLOW_TRACKING_URI": "http://mlflow.mlflow.svc.cluster.local:5000",
+        "MINIO_ENDPOINT": "{{ params.MINIO_ENDPOINT }}",
+        "MINIO_ACCESS_KEY": "{{ params.MINIO_ACCESS_KEY }}",
+        "MINIO_SECRET_KEY": "{{ params.MINIO_SECRET_KEY }}",
+        "MLFLOW_TRACKING_URI": "{{ params.MLFLOW_TRACKING_URI }}",
         "MLFLOW_TRACKING_TOKEN": "{{ params.mlflow_tracking_token }}"
     }
 )
