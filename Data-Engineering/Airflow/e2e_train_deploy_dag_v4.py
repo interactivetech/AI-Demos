@@ -57,7 +57,7 @@ token_volume_mount = k8s.V1VolumeMount(
 )
 
 dag = DAG(
-    "e2e_train_and_deploy_time_series_v4",
+    "e2e_train_and_deploy_time_series_v3",
     default_args=default_args,
     schedule_interval=None,
     tags=["ezaf", "shared-volume"],
@@ -149,10 +149,13 @@ deploy_inference_service = KubernetesPodOperator(
     task_id="deploy_inference_service",
     name="deploy_inference_service_task",
     dag=dag,
-    image="debian",
+    image="bitnami/kubectl:latest",
     cmds=["bash", "-cx"],
     arguments=[
-        f"""bash /mounts/shared-volume/shared/AI-Demos/Data-Analytics/Spark/scripts/deploy.sh"""
+        f"""
+        echo '{yaml_block}' | kubectl apply -f -
+        echo "InferenceService 'anomaly' has been deployed."
+        """
     ],
     get_logs=True,
     is_delete_operator_pod=True,

@@ -42,7 +42,7 @@ token_volume = k8s.V1Volume(
             k8s.V1VolumeProjection(
                 service_account_token=k8s.V1ServiceAccountTokenProjection(
                     path="mlflow-token",
-                    expiration_seconds=36000,
+                    expiration_seconds=3600,
                     audience="mlflow",
                 )
             )
@@ -57,7 +57,7 @@ token_volume_mount = k8s.V1VolumeMount(
 )
 
 dag = DAG(
-    "e2e_train_and_deploy_time_series_v3",
+    "e2e_train_and_deploy_time_series_v2",
     default_args=default_args,
     schedule_interval=None,
     tags=["ezaf", "shared-volume"],
@@ -125,42 +125,40 @@ train_and_export_model = KubernetesPodOperator(
         "MINIO_ACCESS_KEY": "4JCA5L2jOci5eacIW24i",
         "MINIO_SECRET_KEY": "8ksfKLEoFOWcXAOGpq4oIRun96S9bvo0c6xOyxUA",
         "MLFLOW_TRACKING_URI": "http://mlflow.mlflow.svc.cluster.local:5000",
-        "MLFLOW_TRACKING_TOKEN": "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJvZDR0MTIzbjhDdm9Vc0hCb2xpeEdTT2FvX3hYQUp1eXNwbi1IMmVoU0Y4In0.eyJleHAiOjE3NDcxMzg5MjcsImlhdCI6MTc0NzEzNzEyNywiYXV0aF90aW1lIjoxNzQ3MDU4OTM0LCJqdGkiOiJkYjhjZTMyZC0yZTJhLTQ5MTEtYjc1OC0wM2IzZWUwODlhZTMiLCJpc3MiOiJodHRwczovL2tleWNsb2FrLmluZ3Jlc3MucGNhaTAxMDguc3YxMS5ocGVjb2xvLm5ldC9yZWFsbXMvVUEiLCJzdWIiOiI5ZmRhMjVhZS1mY2Q0LTQ4NWQtYWIyNi0yNDMyNDdlNmY0YzMiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJ1YSIsIm5vbmNlIjoiR25aaElIdkdnUnlfU0gzLWI0Qjhvam0wNjFDWWpnbUpEVmlmTmFzQnVuayIsInNlc3Npb25fc3RhdGUiOiJmZjc4ZmI1ZC0wMmQwLTRlOWUtOWViMS05ODkyNTgzOTBlODUiLCJhY3IiOiIxIiwic2NvcGUiOiJvcGVuaWQgZW1haWwgb2ZmbGluZV9hY2Nlc3Mgc3YxMXMxNzZyMTp1YSBwcm9maWxlIiwic2lkIjoiZmY3OGZiNWQtMDJkMC00ZTllLTllYjEtOTg5MjU4MzkwZTg1IiwidWlkIjoiMTAwMDAwMTciLCJlbWFpbF92ZXJpZmllZCI6ZmFsc2UsImdpZCI6IjEwMDEiLCJuYW1lIjoiQW5kcmV3IE1lbmRleiIsIm5hbWVzcGFjZSI6ImFuZHJldy1tZW5kZXotN2I5OGYyM2UiLCJncm91cHMiOlsidWEtZW5hYmxlZCIsIm9mZmxpbmVfYWNjZXNzIiwiYWRtaW4iLCJ1bWFfYXV0aG9yaXphdGlvbiIsImRlZmF1bHQtcm9sZXMtdWEiXSwicHJlZmVycmVkX3VzZXJuYW1lIjoiYW5kcmV3Lm1lbmRleiIsImdpdmVuX25hbWUiOiJBbmRyZXciLCJwb3NpeF91c2VybmFtZSI6ImFuZHJldy5tZW5kZXoiLCJmYW1pbHlfbmFtZSI6Ik1lbmRleiIsImVtYWlsIjoiYW5kcmV3Lm1lbmRlekBocGUuY29tIn0.b9jT5Hto8dKsAwC8oRGOa5PShKdKo3aOwh40ODzYV8ndt7do1HxRaHHZpmh4CSqxgRuHDrrBfnxAKiz9UQ5BoFf5ABKZ7UyhnQhgofj6GqoAZEk38Mty9dpDCtuB8aYQeT6UJTvKMvbIDjjRf19KUiGRZEG0PnVASWybzRfn86P6bbg034Ly6lHUtuNaG1i5CHsnP1ZNNt8KpD1_I08P6X3VWtLsMdCHlsrZjPOiDK6f-XRHfNeCmZMl-Adt-5MNfDDxBZZpzdSjSCyYiTfftN5N9GX2YiKqY8jeUxGdl39AOhNuJzr2vnyFwc6vo08PaL2OcbLOURVn7TToW1wOEg",
+        "MLFLOW_TRACKING_TOKEN": "<your-token>",
     }
 )
 
 # Task: Deploy InferenceService
-import textwrap
-
-yaml_block = textwrap.dedent("""\
-    apiVersion: "serving.kserve.io/v1beta1"
-    kind: "InferenceService"
-    metadata:
-      name: "anomaly"
-      namespace: andrew-mendez-7b98f23e
-    spec:
-      predictor:
-        serviceAccountName: minio-sa
-        tensorflow:
-          storageUri: "s3://models2/anomaly_detection"
-""")
-
 deploy_inference_service = KubernetesPodOperator(
     task_id="deploy_inference_service",
     name="deploy_inference_service_task",
     dag=dag,
-    image="bitnami/kubectl:latest",
+    image="bitnami/kubectl:latest",  # Image that has kubectl
     cmds=["bash", "-cx"],
     arguments=[
-        f"""
-        echo '{yaml_block}' | kubectl apply -f -
-        echo "InferenceService 'anomaly' has been deployed."
+        """
+        kubectl get inferenceservice anomaly || true
+        cat <<EOF | kubectl apply -f -
+        apiVersion: "serving.kserve.io/v1beta1"
+        kind: "InferenceService"
+        metadata:
+          name: "anomaly"
+          namespace: andrew-mendez-7b98f23e
+        spec:
+          predictor:
+            serviceAccountName: minio-sa
+            tensorflow:
+              storageUri: "s3://models2/anomaly_detection"
+        EOF
+        echo "InferenceService 'anomaly' has been deployed to namespace: andrew-mendez-7b98f23e"
         """
     ],
     get_logs=True,
     is_delete_operator_pod=True,
     in_cluster=True,
-    service_account_name="minio-sa"
+    service_account_name="minio-sa",  # Ensure proper permissions
+    env_vars={},  # Add credentials here if required
 )
 
 # Task order
