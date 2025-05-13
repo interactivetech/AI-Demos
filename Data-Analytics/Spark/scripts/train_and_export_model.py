@@ -29,8 +29,8 @@ try:
         print("✅ MLflow token injected into environment")
 except Exception as e:
     raise RuntimeError(f"❌ Failed to read MLflow token: {e}")
-os.environ['MLFLOW_TRACKING_INSECURE_TLS']=True
-os.environ['MLFLOW_S3_IGNORE_TLS']=True
+os.environ['MLFLOW_TRACKING_INSECURE_TLS']='true'
+os.environ['MLFLOW_S3_IGNORE_TLS']='true'
 os.environ['MLFLOW_S3_ENDPOINT_URL']='http://local-s3-service.ezdata-system.svc.cluster.local:30000'
 # --- Helper: Upload a folder to MinIO ---
 def upload_folder(client, bucket, local_folder, prefix):
