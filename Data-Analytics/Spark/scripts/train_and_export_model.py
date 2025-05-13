@@ -36,6 +36,7 @@ print(os.environ['MLFLOW_TRACKING_TOKEN'])
 os.environ['MLFLOW_TRACKING_INSECURE_TLS']='true'
 os.environ['MLFLOW_S3_IGNORE_TLS']='true'
 os.environ['MLFLOW_S3_ENDPOINT_URL']='http://local-s3-service.ezdata-system.svc.cluster.local:30000'
+os.environ['AWS_ENDPOINT_URL']='http://local-s3-service.ezdata-system.svc.cluster.local:30000'
 # --- Helper: Upload a folder to MinIO ---
 def upload_folder(client, bucket, local_folder, prefix):
     for root, dirs, files in os.walk(local_folder):
