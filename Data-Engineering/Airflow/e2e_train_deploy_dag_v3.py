@@ -57,7 +57,7 @@ token_volume_mount = k8s.V1VolumeMount(
 )
 
 dag = DAG(
-    "e2e_train_and_deploy_time_series_v2",
+    "e2e_train_and_deploy_time_series_v3",
     default_args=default_args,
     schedule_interval=None,
     tags=["ezaf", "shared-volume"],
