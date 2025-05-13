@@ -82,7 +82,7 @@ clean_and_merge_logs = KubernetesPodOperator(
     task_id="clean_and_merge_logs",
     name="clean_and_merge_logs_task",
     dag=dag,
-    image="mendeza/python3.10-slim-airflow",  # Ensure it has 'requests', 'minio' installed
+    image="mendeza/python3.10-slim-airflow2",  # Ensure it has 'requests', 'minio' installed
     cmds=["bash", "-cx"],
     arguments=[
         "python3 /mounts/shared-volume/shared/AI-Demos/Data-Analytics/Spark/scripts/clean_and_merge_logs.py"
@@ -106,7 +106,7 @@ train_and_export_model = KubernetesPodOperator(
     task_id="train_and_export_model",
     name="train_and_export_model_task",
     dag=dag,
-    image="mendeza/python3.10-slim-airflow",  # Same image, ensure it has tensorflow, mlflow, minio, matplotlib
+    image="mendeza/python3.10-slim-airflow2",  # Same image, ensure it has tensorflow, mlflow, minio, matplotlib
     cmds=["bash", "-cx"],
     arguments=[
         "python3 /mounts/shared-volume/shared/AI-Demos/Data-Analytics/Spark/scripts/train_and_export_model.py"
