@@ -160,6 +160,8 @@ deploy_inference_service = KubernetesPodOperator(
     dag=dag,
     image="debian",
     cmds=["bash", "-cx"],
+    volumes=[volume, token_volume],
+    volume_mounts=[volume_mount, token_volume_mount],
     arguments=[
         f"""bash /mounts/shared-volume/shared/AI-Demos/Data-Analytics/Spark/scripts/deploy.sh"""
     ],
