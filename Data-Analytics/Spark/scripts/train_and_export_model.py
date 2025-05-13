@@ -25,13 +25,13 @@ print("MLflow Tracking URI:", mlflow.get_tracking_uri())
 
 # --- Load MLflow Token from Volume Mount ---
 # --- Load MLflow Token from Volume Mount ---
-try:
-    with open("/var/run/secrets/mlflow/mlflow-token", "r") as f:
-        token = f.read().strip()
-        os.environ["MLFLOW_TRACKING_TOKEN"] = token
-        print("✅ MLflow token injected into environment")
-except Exception as e:
-    print(f"❌ Failed to read MLflow token: {e}")
+# try:
+#     with open("/var/run/secrets/mlflow/mlflow-token", "r") as f:
+#         token = f.read().strip()
+#         os.environ["MLFLOW_TRACKING_TOKEN"] = token
+#         print("✅ MLflow token injected into environment")
+# except Exception as e:
+#     print(f"❌ Failed to read MLflow token: {e}")
 print(os.environ['MLFLOW_TRACKING_TOKEN'])
 os.environ['MLFLOW_TRACKING_INSECURE_TLS']='true'
 os.environ['MLFLOW_S3_IGNORE_TLS']='true'
